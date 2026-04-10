@@ -10,20 +10,43 @@
   <link rel="stylesheet" href="/style-lcd.css" />
   <title>Casio</title>
   <style>
-    /* Photo mode question input */
-    #photo-question {
-      width: 85px;
+    /* LCD zone: 227px wide x 91px tall, landscape, centered top */
+    #lcd {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 227px;
+      height: 91px;
       background: #0a0a0a;
-      border: 1px solid #3a6a3a;
       color: #7fff7f;
-      font-family: "Courier New", monospace;
-      font-size: 8px;
-      padding: 1px 2px;
-      outline: none;
-      margin: 2px 3px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: row;
     }
-    #photo-question::placeholder { color: #3a6a3a; }
 
+    /* Main content area (fills width minus button bar) */
+    .view-inner {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    /* Right button bar: 18px wide, full height */
+    .btn-bar {
+      width: 18px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      align-items: center;
+      border-left: 1px solid #1a3a1a;
+      padding: 2px 0;
+    }
+
+    /* Top title strip */
     .mode-title {
       font-size: 7px;
       color: #3fff3f;
@@ -33,121 +56,226 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      height: 13px;
+      height: 12px;
       flex-shrink: 0;
+    }
+
+    /* Scrollable text area */
+    .scroll-area {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+    .scroll-text {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      padding: 2px 3px;
+      font-size: 8px;
+      line-height: 1.25;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      color: #7fff7f;
+    }
+
+    /* Mini buttons */
+    .btn {
+      background: none;
+      border: 1px solid #3a6a3a;
+      color: #7fff7f;
+      font-family: "Courier New", monospace;
+      font-size: 7px;
+      padding: 0;
+      width: 14px;
+      height: 14px;
+      line-height: 14px;
+      cursor: pointer;
+      border-radius: 1px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn:active { background: #1a3a1a; }
+
+    /* Menu items */
+    .menu-item {
+      padding: 1px 3px;
+      font-size: 8px;
+      cursor: pointer;
+      border-left: 2px solid transparent;
+    }
+    .menu-item.selected {
+      border-left: 2px solid #7fff7f;
+      color: #fff;
+    }
+
+    /* QCM choice */
+    .qcm-choice {
+      padding: 1px 3px;
+      font-size: 8px;
+      cursor: pointer;
+      border-left: 2px solid transparent;
+    }
+    .qcm-choice.selected {
+      border-left: 2px solid #7fff7f;
+      color: #fff;
+    }
+
+    /* Status dot */
+    .status-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: #ff3f3f;
+      display: inline-block;
+    }
+
+    /* Photo input */
+    #photo-question {
+      width: calc(100% - 6px);
+      margin: 2px 3px;
+      background: #0a0a0a;
+      border: 1px solid #3a6a3a;
+      color: #7fff7f;
+      font-family: "Courier New", monospace;
+      font-size: 8px;
+      padding: 1px 2px;
+      outline: none;
+    }
+    #photo-question::placeholder { color: #3a6a3a; }
+
+    #camera-input { display: none; }
+
+    /* centering helper */
+    .center-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
+
+    .small-label {
+      font-size: 7px;
+      color: #3fff3f;
+      padding: 1px 3px;
+    }
+    .row-btns {
+      display: flex;
+      justify-content: space-between;
+      padding: 1px 3px;
     }
   </style>
 </head>
 <body>
   <div id="lcd">
-    <!-- MENU VIEW -->
-    <div id="view-menu" class="view">
+
+    <!-- ── MENU VIEW ─────────────────────────────────────── -->
+    <div id="view-menu" class="view-inner">
       <div class="mode-title">
         <span>CASIO FX-991ES</span>
-        <span class="status-dot" id="conn-dot" style="background:#ff3f3f"></span>
+        <span class="status-dot" id="conn-dot"></span>
       </div>
-      <div id="lcd-content">
-        <div id="lcd-text">
+      <div class="scroll-area">
+        <div id="lcd-text" class="scroll-text">
           <div class="menu-item selected" data-idx="0">&gt; [PHOTO]</div>
-          <div class="menu-item" data-idx="1">  [QCM]</div>
-          <div class="menu-item" data-idx="2">  [DEFILER]</div>
+          <div class="menu-item" data-idx="1">&nbsp;&nbsp;[QCM]</div>
+          <div class="menu-item" data-idx="2">&nbsp;&nbsp;[DEFILER]</div>
         </div>
       </div>
-      <div id="lcd-bar">
-        <button class="btn" id="menu-up">&#9650;</button>
-        <button class="btn" id="menu-ok">OK</button>
-        <button class="btn" id="menu-dn">&#9660;</button>
-      </div>
+    </div>
+    <div class="btn-bar" id="menu-bar">
+      <button class="btn" id="menu-up">&#9650;</button>
+      <button class="btn" id="menu-ok">OK</button>
+      <button class="btn" id="menu-dn">&#9660;</button>
     </div>
 
-    <!-- PHOTO VIEW -->
-    <div id="view-photo" class="view" style="display:none;flex-direction:column;height:100%">
+    <!-- ── PHOTO VIEW ────────────────────────────────────── -->
+    <div id="view-photo" class="view-inner" style="display:none">
       <div class="mode-title">
         <span>PHOTO&gt;AI</span>
-        <button class="btn" id="photo-back" style="font-size:7px">&#8592;</button>
+        <button class="btn" id="photo-back" style="height:10px;font-size:7px">&#8592;</button>
       </div>
-      <div id="photo-state-idle" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px">
-        <button class="btn" id="photo-capture-btn" style="font-size:11px;padding:2px 4px">&#128247;</button>
-        <span style="font-size:7px;color:#3fff3f">PRENDRE PHOTO</span>
+      <!-- idle -->
+      <div id="photo-idle" class="center-col">
+        <button class="btn" id="photo-capture-btn" style="width:22px;height:22px;font-size:13px">&#128247;</button>
+        <span class="small-label">PHOTO</span>
       </div>
-      <div id="photo-state-question" style="display:none;flex-direction:column">
-        <span style="font-size:7px;color:#3fff3f;padding:1px 3px">QUESTION (opt.):</span>
+      <!-- question -->
+      <div id="photo-quest" style="display:none;flex-direction:column;flex:1">
+        <span class="small-label">QUESTION (opt.):</span>
         <input id="photo-question" type="text" placeholder="?" autocomplete="off" />
-        <div style="display:flex;justify-content:space-between;padding:1px 3px">
-          <button class="btn" id="photo-cancel">ANN</button>
-          <button class="btn" id="photo-send">ENVOYER</button>
+        <div class="row-btns">
+          <button class="btn" id="photo-cancel" style="width:auto;padding:0 3px">ANN</button>
+          <button class="btn" id="photo-send" style="width:auto;padding:0 3px">OK</button>
         </div>
       </div>
-      <div id="photo-state-result" style="display:none;flex:1;overflow:hidden;position:relative">
-        <div id="photo-result-text" style="position:absolute;top:0;left:0;width:100%;padding:2px 3px;font-size:8px;word-wrap:break-word;white-space:pre-wrap;color:#7fff7f"></div>
-      </div>
-      <div id="photo-bar" class="lcd-bar" style="display:none">
-        <button class="btn" id="photo-scroll-up">&#9650;</button>
-        <button class="btn" id="photo-new">&#128247;</button>
-        <button class="btn" id="photo-scroll-dn">&#9660;</button>
+      <!-- result -->
+      <div id="photo-result" class="scroll-area" style="display:none">
+        <div id="photo-result-text" class="scroll-text"></div>
       </div>
     </div>
+    <div class="btn-bar" id="photo-bar" style="display:none">
+      <button class="btn" id="photo-scroll-up">&#9650;</button>
+      <button class="btn" id="photo-new">&#128247;</button>
+      <button class="btn" id="photo-scroll-dn">&#9660;</button>
+    </div>
 
-    <!-- QCM VIEW -->
-    <div id="view-qcm" class="view" style="display:none;flex-direction:column;height:100%">
+    <!-- ── QCM VIEW ───────────────────────────────────────── -->
+    <div id="view-qcm" class="view-inner" style="display:none">
       <div class="mode-title">
         <span>QCM</span>
-        <button class="btn" id="qcm-back" style="font-size:7px">&#8592;</button>
+        <button class="btn" id="qcm-back" style="height:10px;font-size:7px">&#8592;</button>
       </div>
-      <div id="qcm-wait" style="flex:1;display:flex;align-items:center;justify-content:center">
-        <span style="font-size:7px;color:#3fff3f">EN ATTENTE PC...</span>
+      <div id="qcm-wait" class="center-col">
+        <span class="small-label">EN ATTENTE PC...</span>
       </div>
       <div id="qcm-active" style="display:none;flex-direction:column;flex:1;overflow:hidden">
-        <div id="qcm-question" style="padding:2px 3px;font-size:8px;color:#fff;border-bottom:1px solid #1a3a1a;word-wrap:break-word;max-height:70px;overflow:hidden"></div>
-        <div id="qcm-choices" style="flex:1;overflow:hidden"></div>
-      </div>
-      <div id="qcm-bar" class="lcd-bar" style="display:none">
-        <button class="btn" id="qcm-up">&#9650;</button>
-        <button class="btn" id="qcm-ok">OK</button>
-        <button class="btn" id="qcm-dn">&#9660;</button>
+        <div id="qcm-question" style="padding:2px 3px;font-size:8px;color:#fff;border-bottom:1px solid #1a3a1a;word-wrap:break-word;max-height:36px;overflow:hidden;flex-shrink:0"></div>
+        <div id="qcm-choices" style="overflow:hidden;flex:1"></div>
       </div>
     </div>
+    <div class="btn-bar" id="qcm-bar" style="display:none">
+      <button class="btn" id="qcm-up">&#9650;</button>
+      <button class="btn" id="qcm-ok">OK</button>
+      <button class="btn" id="qcm-dn">&#9660;</button>
+    </div>
 
-    <!-- SCROLL VIEW (free text scroll demo) -->
-    <div id="view-scroll" class="view" style="display:none;flex-direction:column;height:100%">
+    <!-- ── SCROLL VIEW ───────────────────────────────────── -->
+    <div id="view-scroll" class="view-inner" style="display:none">
       <div class="mode-title">
         <span>DEFILEMENT</span>
-        <button class="btn" id="scroll-back" style="font-size:7px">&#8592;</button>
+        <button class="btn" id="scroll-back" style="height:10px;font-size:7px">&#8592;</button>
       </div>
-      <div id="lcd-content-scroll" style="flex:1;overflow:hidden;position:relative">
-        <div id="scroll-text" style="position:absolute;top:0;left:0;width:100%;padding:2px 3px;font-size:8px;word-wrap:break-word;white-space:pre-wrap;color:#7fff7f">
-Swipe ou boutons pour defiler.
-Ce mode affiche le dernier texte recu de Claude.
-        </div>
-      </div>
-      <div class="lcd-bar">
-        <button class="btn" id="scroll-up">&#9650;</button>
-        <button class="btn" id="scroll-dn">&#9660;</button>
+      <div id="scroll-area" class="scroll-area">
+        <div id="scroll-text" class="scroll-text">Swipe ou boutons pour defiler.
+Affiche le dernier texte Claude.</div>
       </div>
     </div>
+    <div class="btn-bar" id="scroll-bar" style="display:none">
+      <button class="btn" id="scroll-up">&#9650;</button>
+      <button class="btn" id="scroll-dn">&#9660;</button>
+    </div>
+
   </div>
 
-  <!-- Hidden camera input -->
   <input type="file" id="camera-input" accept="image/*" capture="environment" />
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    // ─── State ───────────────────────────────────────────────────────────────
     const socket = io();
     let currentView = "menu";
     let menuIdx = 0;
     let photoImageB64 = null;
-    let photoScrollTop = 0;
     let qcmChoiceIdx = 0;
     let qcmChoices = [];
-    let lastClaudeText = "";
 
-    // ─── Socket ──────────────────────────────────────────────────────────────
+    // ── Socket ────────────────────────────────────────────────
     socket.on("connect", () => setDot(true));
     socket.on("disconnect", () => setDot(false));
-
     socket.on("qcm:receive", (data) => {
-      if (currentView !== "qcm") showView("qcm");
+      showView("qcm");
       showQCM(data);
     });
 
@@ -155,46 +283,52 @@ Ce mode affiche le dernier texte recu de Claude.
       document.getElementById("conn-dot").style.background = on ? "#3fff3f" : "#ff3f3f";
     }
 
-    // ─── View switching ──────────────────────────────────────────────────────
+    // ── View switching ────────────────────────────────────────
+    const VIEWS = ["menu", "photo", "qcm", "scroll"];
+    const BARS  = { menu: "menu-bar", photo: "photo-bar", qcm: "qcm-bar", scroll: "scroll-bar" };
+
     function showView(name) {
-      document.querySelectorAll(".view").forEach((v) => (v.style.display = "none"));
-      const v = document.getElementById("view-" + name);
-      v.style.display = "flex";
+      VIEWS.forEach((v) => {
+        const el = document.getElementById("view-" + v);
+        el.style.display = "none";
+        const bar = document.getElementById(BARS[v]);
+        if (bar) bar.style.display = "none";
+      });
+      document.getElementById("view-" + name).style.display = "flex";
+      // show bar only when relevant
+      if (name === "menu") document.getElementById("menu-bar").style.display = "flex";
+      if (name === "scroll") document.getElementById("scroll-bar").style.display = "flex";
       currentView = name;
     }
 
-    // ─── MENU ─────────────────────────────────────────────────────────────────
+    // ── MENU ──────────────────────────────────────────────────
     const menuItems = document.querySelectorAll(".menu-item");
-    function updateMenuSelect() {
+    function updateMenu() {
       menuItems.forEach((el, i) => {
         el.classList.toggle("selected", i === menuIdx);
-        el.textContent = (i === menuIdx ? "> " : "  ") + ["[PHOTO]", "[QCM]", "[DEFILER]"][i];
+        el.innerHTML = (i === menuIdx ? "&gt; " : "&nbsp;&nbsp;") +
+          ["[PHOTO]", "[QCM]", "[DEFILER]"][i];
       });
     }
-
     document.getElementById("menu-up").addEventListener("click", () => {
-      menuIdx = (menuIdx - 1 + 3) % 3;
-      updateMenuSelect();
+      menuIdx = (menuIdx - 1 + 3) % 3; updateMenu();
     });
     document.getElementById("menu-dn").addEventListener("click", () => {
-      menuIdx = (menuIdx + 1) % 3;
-      updateMenuSelect();
+      menuIdx = (menuIdx + 1) % 3; updateMenu();
     });
     document.getElementById("menu-ok").addEventListener("click", () => {
-      const views = ["photo", "qcm", "scroll"];
-      showView(views[menuIdx]);
+      showView(["photo", "qcm", "scroll"][menuIdx]);
     });
 
-    // ─── PHOTO MODE ──────────────────────────────────────────────────────────
+    // ── PHOTO ─────────────────────────────────────────────────
     document.getElementById("photo-back").addEventListener("click", () => showView("menu"));
     document.getElementById("photo-new").addEventListener("click", resetPhoto);
 
     function resetPhoto() {
       photoImageB64 = null;
-      photoScrollTop = 0;
-      document.getElementById("photo-state-idle").style.display = "flex";
-      document.getElementById("photo-state-question").style.display = "none";
-      document.getElementById("photo-state-result").style.display = "none";
+      document.getElementById("photo-idle").style.display = "flex";
+      document.getElementById("photo-quest").style.display = "none";
+      document.getElementById("photo-result").style.display = "none";
       document.getElementById("photo-bar").style.display = "none";
       document.getElementById("photo-question").value = "";
     }
@@ -208,10 +342,9 @@ Ce mode affiche le dernier texte recu de Claude.
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (ev) => {
-        // Strip data URI prefix to get pure base64
         photoImageB64 = ev.target.result.split(",")[1];
-        document.getElementById("photo-state-idle").style.display = "none";
-        document.getElementById("photo-state-question").style.display = "flex";
+        document.getElementById("photo-idle").style.display = "none";
+        document.getElementById("photo-quest").style.display = "flex";
       };
       reader.readAsDataURL(file);
       e.target.value = "";
@@ -221,12 +354,12 @@ Ce mode affiche le dernier texte recu de Claude.
 
     document.getElementById("photo-send").addEventListener("click", async () => {
       const q = document.getElementById("photo-question").value.trim();
-      document.getElementById("photo-state-question").style.display = "none";
-      document.getElementById("photo-state-result").style.display = "block";
-      const el = document.getElementById("photo-result-text");
-      el.textContent = "...";
-      photoScrollTop = 0;
-      el.style.top = "0px";
+      document.getElementById("photo-quest").style.display = "none";
+      const resultArea = document.getElementById("photo-result");
+      const resultText = document.getElementById("photo-result-text");
+      resultArea.style.display = "block";
+      resultText.textContent = "...";
+      resultText.style.top = "0px";
 
       try {
         const res = await fetch("/api/claude", {
@@ -236,34 +369,27 @@ Ce mode affiche le dernier texte recu de Claude.
         });
         const data = await res.json();
         const text = data.text || data.error || "Erreur";
-        el.textContent = text;
-        lastClaudeText = text;
-        // Also update scroll view
+        resultText.textContent = text;
         document.getElementById("scroll-text").textContent = text;
-      } catch (err) {
-        el.textContent = "ERREUR RESEAU";
+      } catch {
+        resultText.textContent = "ERREUR RESEAU";
       }
-
       document.getElementById("photo-bar").style.display = "flex";
     });
 
-    // Photo scroll
     setupScroll(
-      document.getElementById("photo-state-result"),
+      document.getElementById("photo-result"),
       document.getElementById("photo-result-text"),
-      "photo-scroll-up",
-      "photo-scroll-dn"
+      "photo-scroll-up", "photo-scroll-dn"
     );
 
-    // ─── QCM MODE ────────────────────────────────────────────────────────────
+    // ── QCM ───────────────────────────────────────────────────
     document.getElementById("qcm-back").addEventListener("click", () => showView("menu"));
 
     function showQCM(data) {
       document.getElementById("qcm-wait").style.display = "none";
-      const activeEl = document.getElementById("qcm-active");
-      activeEl.style.display = "flex";
+      document.getElementById("qcm-active").style.display = "flex";
       document.getElementById("qcm-bar").style.display = "flex";
-
       document.getElementById("qcm-question").textContent = data.question || "";
       qcmChoices = data.choices || [];
       qcmChoiceIdx = 0;
@@ -271,101 +397,68 @@ Ce mode affiche le dernier texte recu de Claude.
     }
 
     function renderChoices() {
-      const container = document.getElementById("qcm-choices");
-      container.innerHTML = "";
-      qcmChoices.forEach((c, i) => {
+      const c = document.getElementById("qcm-choices");
+      c.innerHTML = "";
+      qcmChoices.forEach((text, i) => {
         const el = document.createElement("div");
         el.className = "qcm-choice" + (i === qcmChoiceIdx ? " selected" : "");
-        el.textContent = (i === qcmChoiceIdx ? "> " : "  ") + c;
-        container.appendChild(el);
+        el.textContent = (i === qcmChoiceIdx ? "> " : "  ") + text;
+        c.appendChild(el);
       });
     }
 
     document.getElementById("qcm-up").addEventListener("click", () => {
-      if (qcmChoices.length === 0) return;
+      if (!qcmChoices.length) return;
       qcmChoiceIdx = (qcmChoiceIdx - 1 + qcmChoices.length) % qcmChoices.length;
       renderChoices();
     });
     document.getElementById("qcm-dn").addEventListener("click", () => {
-      if (qcmChoices.length === 0) return;
+      if (!qcmChoices.length) return;
       qcmChoiceIdx = (qcmChoiceIdx + 1) % qcmChoices.length;
       renderChoices();
     });
     document.getElementById("qcm-ok").addEventListener("click", () => {
-      if (qcmChoices.length === 0) return;
+      if (!qcmChoices.length) return;
       socket.emit("qcm:answer", { index: qcmChoiceIdx, text: qcmChoices[qcmChoiceIdx] });
-      // Show confirmation
-      const container = document.getElementById("qcm-choices");
-      container.innerHTML = "";
-      const el = document.createElement("div");
-      el.style.cssText = "padding:2px 3px;font-size:8px;color:#fff";
-      el.textContent = "OK: " + qcmChoices[qcmChoiceIdx];
-      container.appendChild(el);
+      const c = document.getElementById("qcm-choices");
+      c.innerHTML = `<div style="padding:2px 3px;font-size:8px;color:#fff">OK: ${qcmChoices[qcmChoiceIdx]}</div>`;
     });
 
-    // ─── SCROLL MODE ─────────────────────────────────────────────────────────
+    // ── SCROLL ────────────────────────────────────────────────
     document.getElementById("scroll-back").addEventListener("click", () => showView("menu"));
     setupScroll(
-      document.getElementById("lcd-content-scroll"),
+      document.getElementById("scroll-area"),
       document.getElementById("scroll-text"),
-      "scroll-up",
-      "scroll-dn"
+      "scroll-up", "scroll-dn"
     );
 
-    // ─── Generic scroll helper ────────────────────────────────────────────────
+    // ── Generic scroll ────────────────────────────────────────
     function setupScroll(container, textEl, upId, dnId) {
-      let scrollY = 0;
-      const STEP = 20;
+      let y = 0;
+      const STEP = 15;
+      function max() { return Math.max(0, textEl.scrollHeight - container.clientHeight); }
+      function apply() { textEl.style.top = -y + "px"; }
 
-      function clamp(v) {
-        const max = Math.max(0, textEl.scrollHeight - container.clientHeight);
-        return Math.min(Math.max(0, v), max);
-      }
+      if (upId) document.getElementById(upId).addEventListener("click", () => { y = Math.max(0, y - STEP); apply(); });
+      if (dnId) document.getElementById(dnId).addEventListener("click", () => { y = Math.min(max(), y + STEP); apply(); });
 
-      function apply() {
-        textEl.style.top = -scrollY + "px";
-      }
-
-      if (upId) {
-        document.getElementById(upId).addEventListener("click", () => {
-          scrollY = clamp(scrollY - STEP);
-          apply();
-        });
-      }
-      if (dnId) {
-        document.getElementById(dnId).addEventListener("click", () => {
-          scrollY = clamp(scrollY + STEP);
-          apply();
-        });
-      }
-
-      // Touch swipe
-      let touchStartY = 0;
-      container.addEventListener("touchstart", (e) => {
-        touchStartY = e.touches[0].clientY;
-      }, { passive: true });
+      let ty = 0;
+      container.addEventListener("touchstart", (e) => { ty = e.touches[0].clientY; }, { passive: true });
       container.addEventListener("touchmove", (e) => {
-        const dy = touchStartY - e.touches[0].clientY;
-        touchStartY = e.touches[0].clientY;
-        scrollY = clamp(scrollY + dy);
+        const dy = ty - e.touches[0].clientY;
+        ty = e.touches[0].clientY;
+        y = Math.min(max(), Math.max(0, y + dy));
         apply();
         e.preventDefault();
       }, { passive: false });
 
-      // Reset scroll when content changes (observe textEl)
-      const obs = new MutationObserver(() => {
-        scrollY = 0;
-        apply();
-      });
-      obs.observe(textEl, { childList: true, characterData: true, subtree: true });
+      new MutationObserver(() => { y = 0; apply(); })
+        .observe(textEl, { childList: true, characterData: true, subtree: true });
     }
 
-    // ─── PWA service worker ──────────────────────────────────────────────────
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js");
-    }
+    // ── PWA ───────────────────────────────────────────────────
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
 
-    // ─── Init ────────────────────────────────────────────────────────────────
     showView("menu");
   </script>
 </body>
