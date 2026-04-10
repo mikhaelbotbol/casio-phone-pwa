@@ -71,6 +71,19 @@
     }
     .dot.on { background: #3fff3f; }
     .sep { border: none; border-top: 1px solid #1a3a1a; margin: 20px 0; max-width: 600px; }
+  #photo-display {
+    margin-top: 24px;
+    padding: 16px;
+    border: 1px solid #1a4a1a;
+    max-width: 600px;
+    border-radius: 2px;
+    background: #0a1a0a;
+    display: none;
+  }
+  #photo-display h2 { font-size: 13px; color: #7fff7f; margin-bottom: 8px; }
+  #photo-img { max-width: 100%; max-height: 300px; display: block; margin-bottom: 10px; border: 1px solid #1a3a1a; }
+  #photo-question-shown { font-size: 12px; color: #3fff3f; margin-bottom: 6px; font-style: italic; }
+  #photo-answer { font-size: 13px; color: #eee; white-space: pre-wrap; line-height: 1.5; }
   </style>
 </head>
 <body>
@@ -93,6 +106,16 @@
 
   <button class="btn-send" id="btn-send">&#9654; ENVOYER SUR IPHONE</button>
   <div id="status"></div>
+
+  <hr class="sep" />
+
+  <!-- Photo from iPhone -->
+  <div id="photo-display">
+    <h2>&#128247; PHOTO IPHONE &rarr; CLAUDE</h2>
+    <img id="photo-img" src="" alt="photo" />
+    <div id="photo-question-shown"></div>
+    <div id="photo-answer"></div>
+  </div>
 
   <hr class="sep" />
 
@@ -143,6 +166,14 @@
     function setStatus(msg) {
       document.getElementById("status").textContent = msg;
     }
+
+    socket.on("photo:result", (data) => {
+      const box = document.getElementById("photo-display");
+      box.style.display = "block";
+      document.getElementById("photo-img").src = "data:image/jpeg;base64," + data.image;
+      document.getElementById("photo-question-shown").textContent = data.question ? "Q: " + data.question : "";
+      document.getElementById("photo-answer").textContent = data.text;
+    });
   </script>
 </body>
 </html>

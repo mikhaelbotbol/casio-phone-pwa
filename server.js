@@ -44,7 +44,10 @@ app.post("/api/claude", async (req, res) => {
       messages,
     });
 
-    res.json({ text: response.content[0].text });
+    const text = response.content[0].text;
+    // Broadcast photo + answer to all PC clients
+    io.emit("photo:result", { image, question: question || null, text });
+    res.json({ text });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
