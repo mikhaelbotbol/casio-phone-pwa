@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Casio QCM - PC</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111;
+      color: #eee;
+      font-family: "Courier New", monospace;
+      padding: 30px;
+      min-height: 100vh;
+    }
+    h1 { color: #7fff7f; margin-bottom: 20px; font-size: 20px; letter-spacing: 2px; }
+    label { display: block; font-size: 13px; color: #7fff7f; margin-top: 16px; margin-bottom: 4px; }
+    input[type="text"], textarea {
+      width: 100%;
+      max-width: 600px;
+      background: #1a1a1a;
+      border: 1px solid #3a6a3a;
+      color: #eee;
+      font-family: "Courier New", monospace;
+      font-size: 14px;
+      padding: 8px 10px;
+      outline: none;
+      border-radius: 2px;
+    }
+    textarea { resize: vertical; min-height: 60px; }
+    .choices-grid { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+    .choice-row { display: flex; align-items: center; gap: 8px; }
+    .choice-label { color: #3fff3f; font-size: 13px; min-width: 20px; }
+    .btn-send {
+      margin-top: 20px;
+      background: #1a3a1a;
+      border: 1px solid #7fff7f;
+      color: #7fff7f;
+      font-family: "Courier New", monospace;
+      font-size: 14px;
+      padding: 10px 30px;
+      cursor: pointer;
+      border-radius: 2px;
+      letter-spacing: 1px;
+    }
+    .btn-send:hover { background: #2a5a2a; }
+    .btn-send:active { background: #0a2a0a; }
+    #status {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #3fff3f;
+      min-height: 18px;
+    }
+    #answer-display {
+      margin-top: 24px;
+      padding: 16px;
+      border: 1px solid #1a4a1a;
+      max-width: 600px;
+      border-radius: 2px;
+      background: #0a1a0a;
+    }
+    #answer-display h2 { font-size: 13px; color: #7fff7f; margin-bottom: 8px; }
+    #answer-text { font-size: 16px; color: #fff; letter-spacing: 1px; }
+    .dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ff3f3f;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .dot.on { background: #3fff3f; }
+    .sep { border: none; border-top: 1px solid #1a3a1a; margin: 20px 0; max-width: 600px; }
+  </style>
+</head>
+<body>
+  <h1>&#9632; CASIO QCM - PC</h1>
+  <div style="font-size:12px;color:#3a6a3a;margin-bottom:16px">
+    <span class="dot" id="conn-dot"></span>
+    <span id="conn-label">Connexion...</span>
+  </div>
+
+  <label>Question</label>
+  <textarea id="q-question" placeholder="Entrez la question ici..."></textarea>
+
+  <label>Choix (laissez vide pour ignorer)</label>
+  <div class="choices-grid">
+    <div class="choice-row"><span class="choice-label">A.</span><input type="text" id="c0" placeholder="Choix A" /></div>
+    <div class="choice-row"><span class="choice-label">B.</span><input type="text" id="c1" placeholder="Choix B" /></div>
+    <div class="choice-row"><span class="choice-label">C.</span><input type="text" id="c2" placeholder="Choix C" /></div>
+    <div class="choice-row"><span class="choice-label">D.</span><input type="text" id="c3" placeholder="Choix D" /></div>
+  </div>
+
+  <button class="btn-send" id="btn-send">&#9654; ENVOYER SUR IPHONE</button>
+  <div id="status"></div>
+
+  <hr class="sep" />
+
+  <div id="answer-display">
+    <h2>&#9654; REPONSE IPHONE</h2>
+    <div id="answer-text" style="color:#3a6a3a">En attente...</div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    socket.on("connect", () => {
+      document.getElementById("conn-dot").classList.add("on");
+      document.getElementById("conn-label").textContent = "Connecte";
+    });
+    socket.on("disconnect", () => {
+      document.getElementById("conn-dot").classList.remove("on");
+      document.getElementById("conn-label").textContent = "Deconnecte";
+    });
+
+    document.getElementById("btn-send").addEventListener("click", () => {
+      const question = document.getElementById("q-question").value.trim();
+      if (!question) {
+        setStatus("Entrez une question.");
+        return;
+      }
+
+      const choices = ["c0","c1","c2","c3"]
+        .map((id) => document.getElementById(id).value.trim())
+        .filter(Boolean);
+
+      socket.emit("qcm:send", { question, choices });
+      setStatus("Envoye ! En attente de reponse...");
+      document.getElementById("answer-text").style.color = "#3a6a3a";
+      document.getElementById("answer-text").textContent = "En attente...";
+    });
+
+    socket.on("qcm:answered", (data) => {
+      const labels = ["A","B","C","D"];
+      const label = labels[data.index] || data.index;
+      document.getElementById("answer-text").style.color = "#fff";
+      document.getElementById("answer-text").textContent =
+        label + ". " + data.text;
+      setStatus("Reponse recue.");
+    });
+
+    function setStatus(msg) {
+      document.getElementById("status").textContent = msg;
+    }
+  </script>
+</body>
+</html>

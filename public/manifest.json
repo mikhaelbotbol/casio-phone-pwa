@@ -1,0 +1,16 @@
+{
+  "name": "CasioPhone",
+  "short_name": "Casio",
+  "start_url": "/iphone.html",
+  "display": "fullscreen",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
